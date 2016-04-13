@@ -57,7 +57,7 @@ public class LoopViewPager extends ViewPager {
 
     @Override
     public void addOnPageChangeListener(OnPageChangeListener listener) {
-        mChangeListener = new LoopPageChangeListener(listener);
+        mChangeListener.setOnPageChangeListener(listener);
     }
 
     @Override
@@ -142,6 +142,9 @@ public class LoopViewPager extends ViewPager {
                 sendEmptyMessageDelayed(MSG_WHAT, mInterval);
             }
         };
+
+        mChangeListener = new LoopPageChangeListener();
+        super.addOnPageChangeListener(mChangeListener);
     }
 
     private void onMotionDown(float x, float y) {
@@ -172,7 +175,7 @@ public class LoopViewPager extends ViewPager {
 
         private OnPageChangeListener mChangeListener;
 
-        public LoopPageChangeListener(OnPageChangeListener listener) {
+        public void setOnPageChangeListener(OnPageChangeListener listener) {
             mChangeListener = listener;
         }
 
@@ -200,9 +203,9 @@ public class LoopViewPager extends ViewPager {
         public void onPageScrollStateChanged(int state) {
             if (state == SCROLL_STATE_IDLE && getSourceCount() > 1) {
                 if (getLoopCurrentItem() == 0)
-                    setCurrentItem(getSourceCount() - 1);
+                    setCurrentItem(getSourceCount() - 1, false);
                 else if (getLoopCurrentItem() == getLoopCount() - 1)
-                    setCurrentItem(0);
+                    setCurrentItem(0, false);
             }
 
             if (mChangeListener != null)
