@@ -1,6 +1,9 @@
 package com.chrischeng.loopviewpager;
 
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -10,11 +13,16 @@ import android.view.ViewConfiguration;
 
 public class LoopViewPager extends ViewPager {
 
+    private static final int MSG_WHAT = 0;
+
     private PagerAdapter mSourceAdapter;
     private PagerAdapter mLoopAdapter;
+    private LoopPageChangeListener mChangeListener;
     private OnPageClickListener mClickListener;
 
+    private int mInterval;
     private int mTouchSlop;
+    private Handler mHandler;
     private float mStartMotionX;
     private float mStartMotionY;
     private boolean mHasMoved;
@@ -25,21 +33,7 @@ public class LoopViewPager extends ViewPager {
 
     public LoopViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
-    }
-
-    public void setOnPageClickListener(OnPageClickListener listener) {
-        mClickListener = listener;
-    }
-
-    @Override
-    public void addOnPageChangeListener(OnPageChangeListener listener) {
-
-    }
-
-    @Override
-    public void setOnPageChangeListener(OnPageChangeListener listener) {
-        addOnPageChangeListener(listener);
+        init(context, attrs);
     }
 
     @Override
@@ -55,6 +49,31 @@ public class LoopViewPager extends ViewPager {
     @Override
     public PagerAdapter getAdapter() {
         return mSourceAdapter;
+    }
+
+    public void setOnPageClickListener(OnPageClickListener listener) {
+        mClickListener = listener;
+    }
+
+    @Override
+    public void addOnPageChangeListener(OnPageChangeListener listener) {
+        mChangeListener = new LoopPageChangeListener(listener);
+    }
+
+    @Override
+    public void setOnPageChangeListener(OnPageChangeListener listener) {
+        addOnPageChangeListener(listener);
+    }
+
+    public void startLoopScroll() {
+        if (getSourceCount() < 1 || mHandler.hasMessages(MSG_WHAT))
+            return;
+
+        mHandler.sendEmptyMessageDelayed(MSG_WHAT, mInterval);
+    }
+
+    public void pauseLoopScroll() {
+        mHandler.removeMessages(MSG_WHAT);
     }
 
     @Override
@@ -104,8 +123,25 @@ public class LoopViewPager extends ViewPager {
         return super.onTouchEvent(ev);
     }
 
-    private void init() {
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mHandler.removeCallbacksAndMessages(null);
+    }
+
+    private void init(Context context, AttributeSet attrs) {
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.LoopViewPager);
+        mInterval = a.getInteger(R.styleable.LoopViewPager_interval, getResources().getInteger(R.integer.default_interval));
+        a.recycle();
+
         mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                setCurrentItem(getCurrentItem() + 1);
+                sendEmptyMessageDelayed(MSG_WHAT, mInterval);
+            }
+        };
     }
 
     private void onMotionDown(float x, float y) {
