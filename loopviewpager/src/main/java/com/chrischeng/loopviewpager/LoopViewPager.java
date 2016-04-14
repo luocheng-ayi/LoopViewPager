@@ -22,6 +22,7 @@ public class LoopViewPager extends ViewPager {
 
     private int mInterval;
     private int mTouchSlop;
+    private boolean mIsLoopScroll;
     private Handler mHandler;
     private float mStartMotionX;
     private float mStartMotionY;
@@ -69,10 +70,13 @@ public class LoopViewPager extends ViewPager {
         if (getSourceCount() < 1 || mHandler.hasMessages(MSG_WHAT))
             return;
 
+        mIsLoopScroll = true;
+        mHandler.removeMessages(MSG_WHAT);
         mHandler.sendEmptyMessageDelayed(MSG_WHAT, mInterval);
     }
 
     public void pauseLoopScroll() {
+        mIsLoopScroll = false;
         mHandler.removeMessages(MSG_WHAT);
     }
 
@@ -110,13 +114,13 @@ public class LoopViewPager extends ViewPager {
     public boolean onTouchEvent(MotionEvent ev) {
         switch (MotionEventCompat.getActionMasked(ev)) {
             case MotionEvent.ACTION_DOWN:
-                onMotionDown(ev.getX(), ev.getY());
+                onActionDown(ev.getX(), ev.getY());
                 break;
             case MotionEvent.ACTION_MOVE:
-                onMotionMove(ev.getX(), ev.getY());
+                onActionMove(ev.getX(), ev.getY());
                 break;
             case MotionEvent.ACTION_UP:
-                onMotionUp();
+                onActionUp();
                 break;
         }
 
@@ -147,20 +151,25 @@ public class LoopViewPager extends ViewPager {
         super.addOnPageChangeListener(mChangeListener);
     }
 
-    private void onMotionDown(float x, float y) {
+    private void onActionDown(float x, float y) {
+        mHandler.removeMessages(MSG_WHAT);
+
         mHasMoved = false;
         mStartMotionX = x;
         mStartMotionY = y;
     }
 
-    private void onMotionMove(float x, float y) {
+    private void onActionMove(float x, float y) {
         if (Math.abs(x - mStartMotionX) > mTouchSlop || Math.abs(y - mStartMotionY) > mTouchSlop)
             mHasMoved = true;
     }
 
-    private void onMotionUp() {
+    private void onActionUp() {
         if (!mHasMoved && mClickListener != null)
             mClickListener.onPageClick(getCurrentItem());
+
+        if (mIsLoopScroll)
+            startLoopScroll();
     }
 
     private int getSourceCount() {
