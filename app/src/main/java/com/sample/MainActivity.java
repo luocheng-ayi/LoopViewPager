@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (isFirst) {
             isFirst = false;
+            mLoopViewPager.setScrollDuration(350);
             mLoopViewPager.setAdapter(new AdPagerAdapter(this, ads));
         }
 

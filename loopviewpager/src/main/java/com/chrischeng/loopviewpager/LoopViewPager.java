@@ -10,6 +10,9 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
+import android.view.animation.DecelerateInterpolator;
+
+import java.lang.reflect.Field;
 
 public class LoopViewPager extends ViewPager {
 
@@ -20,6 +23,7 @@ public class LoopViewPager extends ViewPager {
     private LoopPageChangeListener mChangeListener;
     private OnPageClickListener mClickListener;
 
+    private LoopScroller mScroller;
     private int mInterval;
     private int mTouchSlop;
     private boolean mIsLoopScroll;
@@ -34,7 +38,7 @@ public class LoopViewPager extends ViewPager {
 
     public LoopViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context, attrs);
+        init(attrs);
     }
 
     @Override
@@ -52,8 +56,21 @@ public class LoopViewPager extends ViewPager {
         return mSourceAdapter;
     }
 
-    public void setOnPageClickListener(OnPageClickListener listener) {
-        mClickListener = listener;
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        switch (MotionEventCompat.getActionMasked(ev)) {
+            case MotionEvent.ACTION_DOWN:
+                onActionDown(ev.getX(), ev.getY());
+                break;
+            case MotionEvent.ACTION_MOVE:
+                onActionMove(ev.getX(), ev.getY());
+                break;
+            case MotionEvent.ACTION_UP:
+                onActionUp();
+                break;
+        }
+
+        return super.onTouchEvent(ev);
     }
 
     @Override
@@ -64,20 +81,6 @@ public class LoopViewPager extends ViewPager {
     @Override
     public void setOnPageChangeListener(OnPageChangeListener listener) {
         addOnPageChangeListener(listener);
-    }
-
-    public void startLoopScroll() {
-        if (getSourceCount() < 1 || mHandler.hasMessages(MSG_WHAT))
-            return;
-
-        mIsLoopScroll = true;
-        mHandler.removeMessages(MSG_WHAT);
-        mHandler.sendEmptyMessageDelayed(MSG_WHAT, mInterval);
-    }
-
-    public void pauseLoopScroll() {
-        mIsLoopScroll = false;
-        mHandler.removeMessages(MSG_WHAT);
     }
 
     @Override
@@ -106,25 +109,30 @@ public class LoopViewPager extends ViewPager {
         return loopCurrentItem;
     }
 
+    public void setOnPageClickListener(OnPageClickListener listener) {
+        mClickListener = listener;
+    }
+
+    public void startLoopScroll() {
+        if (getSourceCount() < 1 || mHandler.hasMessages(MSG_WHAT))
+            return;
+
+        mIsLoopScroll = true;
+        mHandler.removeMessages(MSG_WHAT);
+        mHandler.sendEmptyMessageDelayed(MSG_WHAT, mInterval);
+    }
+
+    public void pauseLoopScroll() {
+        mIsLoopScroll = false;
+        mHandler.removeMessages(MSG_WHAT);
+    }
+
     public int getLoopCurrentItem() {
         return super.getCurrentItem();
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        switch (MotionEventCompat.getActionMasked(ev)) {
-            case MotionEvent.ACTION_DOWN:
-                onActionDown(ev.getX(), ev.getY());
-                break;
-            case MotionEvent.ACTION_MOVE:
-                onActionMove(ev.getX(), ev.getY());
-                break;
-            case MotionEvent.ACTION_UP:
-                onActionUp();
-                break;
-        }
-
-        return super.onTouchEvent(ev);
+    public void setScrollDuration(int duration) {
+        mScroller.setDuration(duration);
     }
 
     @Override
@@ -133,12 +141,37 @@ public class LoopViewPager extends ViewPager {
         mHandler.removeCallbacksAndMessages(null);
     }
 
-    private void init(Context context, AttributeSet attrs) {
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.LoopViewPager);
+    private void init(AttributeSet attrs) {
+        initAttrs(attrs);
+        initListener();
+    }
+
+    private void initScroller(int duration) {
+        try {
+            Field scrollerField = ViewPager.class.getDeclaredField("mScroller");
+            scrollerField.setAccessible(true);
+            Field interpolatorField = ViewPager.class.getDeclaredField("sInterpolator");
+            interpolatorField.setAccessible(true);
+            mScroller = new LoopScroller(getContext(), new DecelerateInterpolator());
+            mScroller.setDuration(duration);
+            scrollerField.set(this, mScroller);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initAttrs(AttributeSet attrs) {
+        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.LoopViewPager);
+        int duration = a.getInteger(R.styleable.LoopViewPager_duration, getResources().getInteger(R.integer.default_duration));
         mInterval = a.getInteger(R.styleable.LoopViewPager_interval, getResources().getInteger(R.integer.default_interval));
         a.recycle();
 
         mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+
+        initScroller(duration);
+    }
+
+    private void initListener() {
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
