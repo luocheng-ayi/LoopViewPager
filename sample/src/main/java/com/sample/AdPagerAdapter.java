@@ -7,19 +7,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import java.util.List;
+
 public class AdPagerAdapter extends PagerAdapter {
 
-    private int[] ads;
-    private LayoutInflater inflater;
+    private List<Integer> mAds;
+    private LayoutInflater mInflater;
 
-    public AdPagerAdapter(Context context, int[] ads) {
-        this.ads = ads;
-        inflater = LayoutInflater.from(context);
+    public AdPagerAdapter(Context context, List<Integer> ads) {
+        mAds = ads;
+        mInflater = LayoutInflater.from(context);
     }
 
     @Override
     public int getCount() {
-        return ads.length;
+        return mAds.size();
     }
 
     @Override
@@ -29,9 +31,9 @@ public class AdPagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        View v = inflater.inflate(R.layout.item_ad, container, false);
+        View v = mInflater.inflate(R.layout.item_ad, container, false);
         ImageView imageView = (ImageView) v.findViewById(R.id.iv);
-        imageView.setImageResource(ads[position]);
+        imageView.setImageResource(mAds.get(position));
         container.addView(v);
 
         return v;

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LoopViewPager</string>
     <string name="contentDescription">null</string>
+    <string name="notify">Notify</string>
 </resources>
