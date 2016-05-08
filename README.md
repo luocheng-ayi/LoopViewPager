@@ -37,15 +37,15 @@ mLoopViewPager.setOnPageItemClickListener(new OnPageItemClickListener() {
     }
 });
 
-mLoopViewPager.setScrollDuration(350); //default 350
+mLoopViewPager.setScrollDuration(350); //default 300
 mLoopViewPager.setScrollInterval(3_000); //default 3_000
 ```
 **Notice:**
-To refresh data of adapter:
+**To refresh data of adapter:**
 ```java
 PagerAdapter adapter = mLoopViewPager.getAdapter();
-    if (adapter != null) {
-        adapter.notifyDataSetChanged();
-        mLoopViewPager.setAdapter(adapter);
-    }
+if (adapter != null) {
+    adapter.notifyDataSetChanged();
+    mLoopViewPager.setAdapter(adapter);
+}
 ```
