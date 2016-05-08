@@ -21,7 +21,7 @@ public class LoopViewPager extends ViewPager {
     private PagerAdapter mSourceAdapter;
     private PagerAdapter mLoopAdapter;
     private LoopPageChangeListener mChangeListener;
-    private OnPageClickListener mClickListener;
+    private OnPageItemClickListener mItemClickListener;
 
     private LoopScroller mScroller;
     private int mInterval;
@@ -109,8 +109,8 @@ public class LoopViewPager extends ViewPager {
         return loopCurrentItem;
     }
 
-    public void setOnPageClickListener(OnPageClickListener listener) {
-        mClickListener = listener;
+    public void setOnPageItemClickListener(OnPageItemClickListener listener) {
+        mItemClickListener = listener;
     }
 
     public void startLoopScroll() {
@@ -198,8 +198,8 @@ public class LoopViewPager extends ViewPager {
     }
 
     private void onActionUp() {
-        if (!mHasMoved && mClickListener != null)
-            mClickListener.onPageClick(getCurrentItem());
+        if (!mHasMoved && mItemClickListener != null)
+            mItemClickListener.onPageItemClick(getCurrentItem());
 
         if (mIsLoopScroll)
             startLoopScroll();
