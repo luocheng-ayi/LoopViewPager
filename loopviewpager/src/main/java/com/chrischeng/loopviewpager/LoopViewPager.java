@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.animation.DecelerateInterpolator;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 
 public class LoopViewPager extends ViewPager {
@@ -27,7 +28,7 @@ public class LoopViewPager extends ViewPager {
     private int mInterval;
     private int mTouchSlop;
     private boolean mIsLoopScroll;
-    private Handler mHandler;
+    private LoopHandler mHandler;
     private float mStartMotionX;
     private float mStartMotionY;
     private boolean mHasMoved;
@@ -131,6 +132,14 @@ public class LoopViewPager extends ViewPager {
         return super.getCurrentItem();
     }
 
+    public void setScrollInterval(int interval) {
+        mInterval = interval;
+    }
+
+    public int getScrollInterval() {
+        return mInterval;
+    }
+
     public void setScrollDuration(int duration) {
         mScroller.setDuration(duration);
     }
@@ -172,14 +181,7 @@ public class LoopViewPager extends ViewPager {
     }
 
     private void initListener() {
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                setCurrentItem(getCurrentItem() + 1);
-                sendEmptyMessageDelayed(MSG_WHAT, mInterval);
-            }
-        };
-
+        mHandler = new LoopHandler(this);
         mChangeListener = new LoopPageChangeListener();
         super.addOnPageChangeListener(mChangeListener);
     }
@@ -252,6 +254,24 @@ public class LoopViewPager extends ViewPager {
 
             if (mChangeListener != null)
                 mChangeListener.onPageScrollStateChanged(state);
+        }
+    }
+
+    private static class LoopHandler extends Handler {
+
+        private WeakReference<LoopViewPager> mLoopViewPager;
+
+        public LoopHandler(LoopViewPager loopViewPager) {
+            mLoopViewPager = new WeakReference<>(loopViewPager);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            LoopViewPager loopViewPager = mLoopViewPager.get();
+            if (loopViewPager != null) {
+                loopViewPager.setCurrentItem(loopViewPager.getCurrentItem() + 1);
+                sendEmptyMessageDelayed(MSG_WHAT, loopViewPager.getScrollInterval());
+            }
         }
     }
 
