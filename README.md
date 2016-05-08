@@ -37,7 +37,7 @@ mLoopViewPager.setOnPageItemClickListener(new OnPageItemClickListener() {
     }
 });
 
-mLoopViewPager.setScrollDuration(350); //default 300
+mLoopViewPager.setScrollDuration(350); //default 350
 mLoopViewPager.setScrollInterval(3_000); //default 3_000
 ```
 **Notice:**
