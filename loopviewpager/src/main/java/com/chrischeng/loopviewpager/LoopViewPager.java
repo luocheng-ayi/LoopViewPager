@@ -171,8 +171,8 @@ public class LoopViewPager extends ViewPager {
 
     private void initAttrs(AttributeSet attrs) {
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.LoopViewPager);
-        int duration = a.getInteger(R.styleable.LoopViewPager_duration, getResources().getInteger(R.integer.default_duration));
-        mInterval = a.getInteger(R.styleable.LoopViewPager_interval, getResources().getInteger(R.integer.default_interval));
+        int duration = a.getInteger(R.styleable.LoopViewPager_lvp_duration, getResources().getInteger(R.integer.default_duration));
+        mInterval = a.getInteger(R.styleable.LoopViewPager_lvp_interval, getResources().getInteger(R.integer.default_interval));
         a.recycle();
 
         mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();

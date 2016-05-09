@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="LoopViewPager">
-        <attr name="duration" format="integer" />
-        <attr name="interval" format="integer" />
+        <attr name="lvp_duration" format="integer" />
+        <attr name="lvp_interval" format="integer" />
     </declare-styleable>
 </resources>
